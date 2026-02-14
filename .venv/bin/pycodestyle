@@ -1,4 +1,4 @@
-#!/home/user/a2asampleapp/.venv/bin/python
+#!/home/user/a2asampleapp/.venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys

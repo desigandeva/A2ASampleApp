@@ -3,4 +3,7 @@ autopep8
 Flask==3.0.3
 gunicorn==22.0.0
 Werkzeug==3.0.6
-a2a
+a2a-sdk[http-server]
+uvicorn
+httpx
+python-dotenv
