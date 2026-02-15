@@ -25,7 +25,8 @@ class MailExecutor:
         self.message = ""
         load_dotenv()
 
-    def send_email(to_email: str, subject: str, body: str) -> str:
+    # @staticmethod
+    def send_email(self, to_email: str, subject: str, body: str) -> str:
         try:
             sender_email = os.getenv("SENDERMAIL")
             app_password = os.getenv("SENDERPASSWORD")
@@ -42,7 +43,7 @@ class MailExecutor:
 
             return "Mail sent successfully"
         except Exception as e:
-            return "Error: {e}"
+            return f"Error: {e}"
 
     async def execute(self, request, queue):
         self.receiver_mail_id = os.getenv("RECEIVERMAIL")
@@ -51,7 +52,7 @@ class MailExecutor:
 
         if "mail" in user_text:
             # Hardcoded example (later we can parse dynamically)
-            result = send_email(
+            result = MailExecutor.send_email(
                 to_email=self.receiver_mail_id,
                 subject="Test Mail from A2A",
                 body="Hello, this is a test mail sent from my A2A agent."
@@ -65,7 +66,7 @@ class MailExecutor:
             parts=[TextPart(text=result)]
         )
 
-        await queue.enqueue_event(response_message)
+        await queue.produce(response_message)
 
 if __name__ == '__main__':
     skill = AgentSkill(
@@ -88,7 +89,7 @@ if __name__ == '__main__':
     public_agent_card = AgentCard(
         name='Mailer Agent',
         description='The basic mail agent for public users.',
-        url='http://localhost:9999/',
+        url='http://localhost:9001/',
         version='1.0.0',
         default_input_modes=['text'],
         default_output_modes=['text'],
@@ -123,4 +124,4 @@ if __name__ == '__main__':
         http_handler=request_handler
     )
 
-    uvicorn.run(server.build(), host='0.0.0.0', port=9999)
+    uvicorn.run(server.build(), host='0.0.0.0', port=9001)
