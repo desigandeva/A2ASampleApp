@@ -52,7 +52,7 @@ class MailExecutor:
 
         if "mail" in user_text:
             # Hardcoded example (later we can parse dynamically)
-            result = MailExecutor.send_email(
+            result = self.send_email(
                 to_email=self.receiver_mail_id,
                 subject="Test Mail from A2A",
                 body="Hello, this is a test mail sent from my A2A agent."
@@ -66,7 +66,7 @@ class MailExecutor:
             parts=[TextPart(text=result)]
         )
 
-        await queue.produce(response_message)
+        await queue.enqueue_event(response_message)
 
 if __name__ == '__main__':
     skill = AgentSkill(

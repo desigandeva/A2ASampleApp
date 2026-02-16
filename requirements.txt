@@ -7,3 +7,4 @@ a2a-sdk[http-server]
 uvicorn
 httpx
 python-dotenv
+ddgs

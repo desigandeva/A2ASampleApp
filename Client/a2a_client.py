@@ -25,7 +25,7 @@ class AgentDiscovery:
 async def main():
 
     remote_agents = AgentDiscovery()
-    base_url = remote_agents.base_urls[1]
+    base_url = remote_agents.base_urls[2]
 
     while True:
         user_query = input("Enter Your Query : ")
@@ -63,6 +63,7 @@ async def main():
             )
 
             response = await client.send_message(request)
+            print(response)
             print(response.model_dump(mode='json', exclude_none=True))
 
 

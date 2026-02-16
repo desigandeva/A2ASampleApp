@@ -2,11 +2,10 @@ from a2a.server.apps import A2AStarletteApplication
 from a2a.server.request_handlers import DefaultRequestHandler
 from a2a.server.tasks import InMemoryTaskStore
 from a2a.types import AgentCard, AgentSkill, AgentCapabilities, TextPart, Message
-from agent_executor import ReimbursementAgentExecutor
-from agent import ReimbursementAgent
+from a2a.server.agent_execution.context import RequestContext
 from dotenv import load_dotenv
-from duckduckgo_search import DDGS
-import uuid
+from ddgs import DDGS
+from uuid import uuid4
 load_dotenv()
 
 
@@ -35,21 +34,33 @@ class WebSearchAgentExecutor:
     def __init__(self):
         self.agent = WebAgent()
 
-    async def execute(self, message: Message, **kwargs) -> Message:
-        user_query = ""
+    async def execute(self, request, queue):
+        try:
+            user_query = ""
+            message = request.message
 
-        for part in message.parts:
-            if isinstance(part, TextPart):
-                user_query += part.text
+            for part in message.parts:
+                if hasattr(part, "root") and isinstance(part.root, TextPart):
+                    user_query += part.root.text
 
-        result = self.agent.web_search(user_query)
+            result = self.agent.web_search(user_query)
 
-        return Message(
-            id=str(uuid.uuid4()),
-            role="assistant",
-            parts=[TextPart(text=result)]
-        )
+            response_message = Message(
+                messageId=uuid4().hex,
+                role="agent",
+                parts=[TextPart(text=result)]
+            )
 
+            await queue.enqueue_event(response_message)
+
+        except Exception as e:
+            error_message = Message(
+                messageId=uuid4().hex,
+                role="agent",
+                parts=[TextPart(text=f"Error: {str(e)}")]
+            )
+
+            await queue.enqueue_event(error_message)
 
 
 if __name__ == '__main__':
@@ -67,11 +78,11 @@ if __name__ == '__main__':
         description='Search the web for information about a topic',
         url='http://localhost:9002/',
         version='1.0.0',
-        default_input_modes=ReimbursementAgent.SUPPORTED_CONTENT_TYPES,
-        default_output_modes=ReimbursementAgent.SUPPORTED_CONTENT_TYPES,
+        default_input_modes=['text'],
+        default_output_modes=['text'],
         capabilities=AgentCapabilities(streaming=False),
         skills=[skill],
-        supports_authenticated_extended_card=False
+        supports_authenticated_extended_card=True
     )
 
     agent_executor = WebSearchAgentExecutor()
